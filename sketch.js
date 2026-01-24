@@ -34,22 +34,60 @@ function cycleFocusedImage(){
 }
 //setup canvases
 let selector
+let buttonDownload
 function setup() {
   page=createGraphics(640,360);
+
   createCanvas(windowWidth,windowHeight)
+    initCalc()
+  console.log(windowOffset.x)
   page.pixelDensity(3)
   input = createFileInput(handleImage, true);
-  input.position(width/8,height/3+20);
-  let buttonDownload = createButton('Download Files');
-  buttonDownload.position(width/8,height/3+70);
+  buttonDownload = createButton('Download Files');
+  
   buttonDownload.mousePressed(exportImages);
   
   selector = createSelect();
-  selector.position(width/8,height/3+110)
-  selector.mouseClicked(cycleFocusedImage)
   
+  selector.mouseClicked(cycleFocusedImage)
+  updateUiPos()
 
 }
+
+
+// function updateUiPos(){
+//   input.position(30+windowOffset.x,windowOffset.y);
+//   selector.position(30+windowOffset.x,100+90+windowOffset.y)
+//   buttonDownload.position(30+windowOffset.x,100+50+windowOffset.y);
+// }
+function updateUiPos() {
+  const s = windowOffset.w / page.width;
+
+  // positions in page-space
+  const baseX = 30;
+  const otherX = 640-100;
+  const inputY = 90;
+  const buttonY = 130;
+  const selectorY = 90;
+
+  input.position(
+    windowOffset.x + baseX * s,
+    windowOffset.y + inputY * s
+  );
+
+  buttonDownload.position(
+    windowOffset.x + baseX * s,
+    windowOffset.y + buttonY * s
+  );
+
+  selector.position(
+    windowOffset.x + otherX * s,
+    windowOffset.y + selectorY * s
+  );
+}
+
+
+
 function handleImage(file) {
 if (file.type === 'image') {
     console.log(file.name+" loading")
@@ -100,13 +138,13 @@ function draw() {
   page.push()
   page.imageMode(CENTER)
   page.textAlign(CENTER)
-  page.fill("white")
   page.textSize(14)
   if(images[focusedImage]){
     page.text(names[focusedImage],page.width*(3/4),145-((lerpMod(focusTime2)*100)+1)/2)
     page.image(images[focusedImage],page.width*(3/4),155,(lerpMod(focusTime2)*100)+1,(lerpMod(focusTime2)*100)+1)
   }
   else{
+    page.fill(255)
     page.text("No file",page.width*(3/4),155)
   }
   page.pop()
@@ -114,7 +152,6 @@ function draw() {
   //Draw Title
   page.push()
   page.imageMode(CENTER)
-  page.fill(0,255,0)
   let sizeOffset=20+cos(frameCount/100)*2
   page.translate(page.width/2,50)
   page.rotate(cos(frameCount/90)/5)
@@ -125,8 +162,12 @@ function draw() {
   page.push()
   page.imageMode(CORNER)
   page.rectMode(CORNER)
+  page.fill(255,255,255,100)
+  page.stroke(255)
   page.rect(45,245,page.width-90,32+10,10)
+  page.noStroke()
   if(images.length==0){
+    page.fill(255)
     page.text("No files uploaded...",50,270)
   }
   for (let i = 0; i < images.length; i += 1) {
@@ -144,6 +185,7 @@ function draw() {
       page.rect(x+50+xMod, 250, images[i].width, images[i].height);
     }
   }
+  page.pop()
   page.push()
   page.fill(200)
   page.textAlign(LEFT)
@@ -154,6 +196,10 @@ function draw() {
   page.pop()
   //render the page onto the main canvas
   pasteGraphic(page)
+  text(windowOffset.x,0,10)
+  text(windowOffset.y,0,30)
+  text(windowOffset.w,0,50)
+  text(windowOffset.h,0,70)
 }
 
 //code I made forever ago for screen-filling apps
@@ -174,9 +220,33 @@ function pasteGraphic(graphic) {
     newWidth = height * graphicAspect;
     newHeight = height;
   }
-
+  windowOffset={x:(width - newWidth) / 2,y:(height - newHeight) / 2,w:newWidth,h:newHeight}
   // Draw the graphic onto the main canvas, centered
   image(graphic, (width - newWidth) / 2, (height - newHeight) / 2, newWidth, newHeight);
+}
+let windowOffset={}
+function windowResized(){
+  resizeCanvas(windowWidth,windowHeight)
+  updateUiPos()
+}
+function initCalc(){
+  graphic={width:640,height:360}
+    const screenAspect = width / height;
+  const graphicAspect = graphic.width / graphic.height;
+
+  let newWidth, newHeight;
+
+  // If the graphic is wider than the screen (or has the same aspect ratio)
+  if (graphicAspect > screenAspect) {
+    // Scale based on width
+    newWidth = width;
+    newHeight = width / graphicAspect;
+  } else {
+    // Scale based on height
+    newWidth = height * graphicAspect;
+    newHeight = height;
+  }
+    windowOffset={x:(width - newWidth) / 2,y:(height - newHeight) / 2,w:newWidth,h:newHeight}
 }
 function resizeTo32(img) {
   let resized = createImage(32, 32);

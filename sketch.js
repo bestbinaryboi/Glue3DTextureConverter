@@ -196,10 +196,6 @@ function draw() {
   page.pop()
   //render the page onto the main canvas
   pasteGraphic(page)
-  text(windowOffset.x,0,10)
-  text(windowOffset.y,0,30)
-  text(windowOffset.w,0,50)
-  text(windowOffset.h,0,70)
 }
 
 //code I made forever ago for screen-filling apps

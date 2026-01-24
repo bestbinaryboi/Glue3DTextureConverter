@@ -192,7 +192,7 @@ function draw() {
   page.textSize(10)
   page.text("Made by LamdaLady(NULLIS) unbentunicorn79@gmail.com",5,page.height-15)
   page.textAlign(RIGHT)
-  page.text("v1.0",page.width-5,page.height-15)
+  page.text("v1.2",page.width-5,page.height-15)
   page.pop()
   //render the page onto the main canvas
   pasteGraphic(page)

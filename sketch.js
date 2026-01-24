@@ -39,12 +39,14 @@ function setup() {
   page=createGraphics(640,360);
 
   createCanvas(windowWidth,windowHeight)
-    initCalc()
+  initCalc()
   console.log(windowOffset.x)
   page.pixelDensity(3)
   input = createFileInput(handleImage, true);
+  let reportButton=createButton("Report issue/Suggest feature")
+  reportButton.position(0,0)
   buttonDownload = createButton('Download Files');
-  
+  reportButton.mouseClicked(goToIssues);
   buttonDownload.mousePressed(exportImages);
   
   selector = createSelect();
@@ -53,7 +55,9 @@ function setup() {
   updateUiPos()
 
 }
-
+function goToIssues(){
+  window.open("https://github.com/bestbinaryboi/Glue3DTextureConverter/issues/new", "_blank");
+}
 
 // function updateUiPos(){
 //   input.position(30+windowOffset.x,windowOffset.y);
@@ -192,7 +196,7 @@ function draw() {
   page.textSize(10)
   page.text("Made by LamdaLady(NULLIS) unbentunicorn79@gmail.com",5,page.height-15)
   page.textAlign(RIGHT)
-  page.text("v1.2",page.width-5,page.height-15)
+  page.text("v1.0",page.width-5,page.height-15)
   page.pop()
   //render the page onto the main canvas
   pasteGraphic(page)

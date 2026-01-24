@@ -39,13 +39,13 @@ function setup() {
   createCanvas(windowWidth,windowHeight)
   page.pixelDensity(3)
   input = createFileInput(handleImage, true);
-  input.position(30,height/3);
+  input.position(width/8,height/3+20);
   let buttonDownload = createButton('Download Files');
-  buttonDownload.position(30,height/3+50);
+  buttonDownload.position(width/8,height/3+70);
   buttonDownload.mousePressed(exportImages);
   
   selector = createSelect();
-  selector.position(30,height/3+90)
+  selector.position(width/8,height/3+110)
   selector.mouseClicked(cycleFocusedImage)
   
 

@@ -20,7 +20,6 @@ let names=[]
 let imageTime=[]
 let focusedImage=0
 let focusTime=0
-
 function preload() {
   logo=loadImage("glue3dtextureconverterlogo.png")
 }
@@ -35,22 +34,25 @@ function cycleFocusedImage(){
 //setup canvases
 let selector
 let buttonDownload
+let SpriteSheetCheckbox
 function setup() {
   page=createGraphics(640,360);
-
   createCanvas(windowWidth,windowHeight)
   initCalc()
   console.log(windowOffset.x)
   page.pixelDensity(3)
   input = createFileInput(handleImage, true);
+  SpriteSheetCheckbox = createCheckbox(" Import as sprite sheet?");
+  
   let reportButton=createButton("Report issue/Suggest feature")
   reportButton.position(0,0)
   buttonDownload = createButton('Download Files');
   reportButton.mouseClicked(goToIssues);
   buttonDownload.mousePressed(exportImages);
-  
+  helpButton=createButton("?")
   selector = createSelect();
-  
+  selector.size(100,20)
+  helpButton.size()
   selector.mouseClicked(cycleFocusedImage)
   updateUiPos()
 
@@ -72,7 +74,8 @@ function updateUiPos() {
   const otherX = 640-100;
   const inputY = 90;
   const buttonY = 130;
-  const selectorY = 90;
+  const selectorY = 110;
+  const checkboxY=110
 
   input.position(
     windowOffset.x + baseX * s,
@@ -88,6 +91,10 @@ function updateUiPos() {
     windowOffset.x + otherX * s,
     windowOffset.y + selectorY * s
   );
+    SpriteSheetCheckbox.position(
+    windowOffset.x + baseX * s,
+    windowOffset.y + checkboxY * s
+  );
 }
 
 
@@ -95,12 +102,24 @@ function updateUiPos() {
 function handleImage(file) {
 if (file.type === 'image') {
     console.log(file.name+" loading")
-    names.push(file.name)
+    
     loadImage(file.data, img => {
+      if(SpriteSheetCheckbox.checked()){
+        let tempArray=splitImage(img,32,32)
+        for(let i=0;i<tempArray.length;i++){
+          images.push(tempArray[i]);
+          imageTime.push(millis())
+          selector.option(file.name+i)
+          names.push(file.name+i)
+        }
+      }
+      else{
+      names.push(file.name)
       images.push(resizeTo32(img));
       selector.option(file.name)
       imageTime.push(millis())
       focusTime=millis()
+      }
     });
   }
 }
@@ -157,8 +176,8 @@ function draw() {
   page.push()
   page.imageMode(CENTER)
   let sizeOffset=20+cos(frameCount/100)*2
-  page.translate(page.width/2,50)
-  page.rotate(cos(frameCount/90)/5)
+  page.translate(page.width/2,55)
+  // page.rotate(cos(frameCount/90)/5)
   page.image(logo,0,0,logo.width*0.22+sizeOffset,logo.height*0.22+sizeOffset)
   page.pop()
   
@@ -176,7 +195,7 @@ function draw() {
   }
   for (let i = 0; i < images.length; i += 1) {
     // Calculate the y-coordinate.
-    let x = i * 34;
+    let x = i * min(34,(page.width-90-32)/images.length);
     let xMod=min(lerpMod(1-((millis()-imageTime[i])/1000))*200,page.width-90)
 
     // Draw the image.
@@ -196,7 +215,7 @@ function draw() {
   page.textSize(10)
   page.text("Made by LamdaLady(NULLIS) unbentunicorn79@gmail.com",5,page.height-15)
   page.textAlign(RIGHT)
-  page.text("v1.0",page.width-5,page.height-15)
+  page.text("v1.2",page.width-5,page.height-15)
   page.pop()
   //render the page onto the main canvas
   pasteGraphic(page)
@@ -256,6 +275,25 @@ function resizeTo32(img) {
     0, 0, 32, 32                 
   );
   return resized;
+}
+function splitImage(img, tileW, tileH) {
+  let pieces = [];
+  let cols = Math.floor(img.width / tileW);
+  let rows = Math.floor(img.height / tileH);
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      let piece = createImage(tileW, tileH);
+      piece.copy(
+        img,
+        x * tileW, y * tileH, 
+        tileW, tileH,         
+        0, 0,                 
+        tileW, tileH          
+      );
+      pieces.push(piece);
+    }
+  }
+  return pieces;
 }
 
 function convertToList(img){

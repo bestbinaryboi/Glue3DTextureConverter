@@ -10,7 +10,7 @@ let page;
 
 //background settings
 let bgSpeed=1
-let bgColor1="#949494"
+let bgColor1="#88B5B7"
 let bgColor2="#BBBBBB"
 
 
@@ -20,8 +20,11 @@ let names=[]
 let imageTime=[]
 let focusedImage=0
 let focusTime=0
+let aeroGradient;
 function preload() {
   logo=loadImage("glue3dtextureconverterlogo.png")
+  aeroGradient=loadImage("aerocard.png")
+  
 }
 
 function lerpMod(ine){
@@ -31,10 +34,15 @@ function cycleFocusedImage(){
   focusedImage=names.indexOf(selector.selected())
   focusTime=millis()
 }
+let reduceMotion=false
 //setup canvases
 let selector
 let buttonDownload
 let SpriteSheetCheckbox
+let ReduceMotionButton
+let gradientbg;
+let helpButton
+
 function setup() {
   page=createGraphics(640,360);
   createCanvas(windowWidth,windowHeight)
@@ -43,19 +51,28 @@ function setup() {
   page.pixelDensity(3)
   input = createFileInput(handleImage, true);
   SpriteSheetCheckbox = createCheckbox(" Import as sprite sheet?");
-  
+  SpriteSheetCheckbox.style("font-family: Verdana, sans-serif;")
+  ReduceMotionButton = createCheckbox("Reduce Motion?");
+  ReduceMotionButton.style("font-family: Verdana, sans-serif;")
+  ReduceMotionButton.position(0,0)
   let reportButton=createButton("Report issue/Suggest feature")
-  reportButton.position(0,0)
+  reportButton.position(10,height-30)
   buttonDownload = createButton('Download Files');
   reportButton.mouseClicked(goToIssues);
   buttonDownload.mousePressed(exportImages);
-  helpButton=createButton("?")
+  // helpButton=createButton("?")
   selector = createSelect();
-  selector.size(100,20)
-  helpButton.size()
+  selector.size(100,30)
   selector.mouseClicked(cycleFocusedImage)
+  ReduceMotionButton.mouseClicked(setMotionReduce)
   updateUiPos()
 
+}
+function setMotionReduce(){
+  reduceMotion=ReduceMotionButton.checked()
+  if(reduceMotion){
+    gradientbg=loadImage("Gradient.png")
+  }
 }
 function goToIssues(){
   window.open("https://github.com/bestbinaryboi/Glue3DTextureConverter/issues/new", "_blank");
@@ -95,6 +112,7 @@ function updateUiPos() {
     windowOffset.x + baseX * s,
     windowOffset.y + checkboxY * s
   );
+  // helpButton.position(width-30,0)
 }
 
 
@@ -136,11 +154,12 @@ function exportImages(){
 function draw() {
   background(bgColor1);
   page.clear()
-  page.push()
-  page.fill(0,0,0,100,)
-  page.rect(0,0,640,360,10)
-  page.pop()
+
   //draw background animation
+  if(gradientbg&&reduceMotion){
+    image(gradientbg,0,0,width,height)
+  }
+  else{
   push()
   stroke(bgColor2)
   strokeWeight(10)
@@ -148,16 +167,29 @@ function draw() {
     line(((round(frameCount*bgSpeed))%30)+(i*30),0,0,(round(frameCount*bgSpeed)%30)+(i*30))
   }
   pop()
-  
-  //draw the card
+  }
   page.push()
-  page.stroke(1)
-  page.fill("#00D3B2")
-  page.rectMode(CENTER)
-  page.rect(320,200,620,250,20)
+  page.noStroke()
+  page.fill(0,0,0,100,)
+  page.rect(0,0,640,360,10)
+  page.pop()
+  //draw the card
+  // page.push()
+  // page.stroke(1)
+  // page.fill("#49FFE3B5")
+  // page.rectMode(CENTER)
+  // page.rect(320,200,620,250,20)
+  // page.pop()
+  page.push()
+  page.imageMode(CENTER)
+  page.tint(255,220)
+  page.image(aeroGradient,320,200,620,250)
   page.pop()
   //Draw preview
   let focusTime2=(millis()-focusTime)/200
+  if(reduceMotion){
+    focusTime2=1
+  }
   page.push()
   page.imageMode(CENTER)
   page.textAlign(CENTER)
@@ -167,7 +199,7 @@ function draw() {
     page.image(images[focusedImage],page.width*(3/4),155,(lerpMod(focusTime2)*100)+1,(lerpMod(focusTime2)*100)+1)
   }
   else{
-    page.fill(255)
+    page.fill(20)
     page.text("No file",page.width*(3/4),155)
   }
   page.pop()
@@ -190,14 +222,17 @@ function draw() {
   page.rect(45,245,page.width-90,32+10,10)
   page.noStroke()
   if(images.length==0){
-    page.fill(255)
+    page.fill(30,100)
     page.text("No files uploaded...",50,270)
   }
   for (let i = 0; i < images.length; i += 1) {
     // Calculate the y-coordinate.
     let x = i * min(34,(page.width-90-32)/images.length);
-    let xMod=min(lerpMod(1-((millis()-imageTime[i])/1000))*200,page.width-90)
-
+    let xMod=0
+    if(!reduceMotion){
+    xMod=min(lerpMod(1-((millis()-imageTime[i])/1000))*200,page.width-90)
+    }
+    
     // Draw the image.
 
 
@@ -213,9 +248,9 @@ function draw() {
   page.fill(200)
   page.textAlign(LEFT)
   page.textSize(10)
-  page.text("Made by LamdaLady(NULLIS) unbentunicorn79@gmail.com",5,page.height-15)
+  page.text("Made by LamdaLady(NULLIS, unbentunicorn79)",5,page.height-15)
   page.textAlign(RIGHT)
-  page.text("v1.2",page.width-5,page.height-15)
+  page.text("v1.3",page.width-5,page.height-15)
   page.pop()
   //render the page onto the main canvas
   pasteGraphic(page)

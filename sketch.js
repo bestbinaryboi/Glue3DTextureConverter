@@ -10,10 +10,11 @@ let page;
 
 //background settings
 let bgSpeed=1
-let bgColor1="#88B5B7"
-let bgColor2="#BBBBBB"
+let bgColor1="#BBBBBB"
+let bgColor2="#88B5B7"
 
-
+let imagesNeeded=0
+let imagesLoaded=0
 let logo;
 let images=[]
 let names=[]
@@ -21,10 +22,11 @@ let imageTime=[]
 let focusedImage=0
 let focusTime=0
 let aeroGradient;
+let shadow;
 function preload() {
   logo=loadImage("glue3dtextureconverterlogo.png")
   aeroGradient=loadImage("aerocard.png")
-  
+  shadow=loadImage("shadow.png")
 }
 
 function lerpMod(ine){
@@ -61,6 +63,7 @@ function setup() {
   reportButton.mouseClicked(goToIssues);
   buttonDownload.mousePressed(exportImages);
   // helpButton=createButton("?")
+  // helpButton.position(width-30,5)
   selector = createSelect();
   selector.size(100,30)
   selector.mouseClicked(cycleFocusedImage)
@@ -78,11 +81,7 @@ function goToIssues(){
   window.open("https://github.com/bestbinaryboi/Glue3DTextureConverter/issues/new", "_blank");
 }
 
-// function updateUiPos(){
-//   input.position(30+windowOffset.x,windowOffset.y);
-//   selector.position(30+windowOffset.x,100+90+windowOffset.y)
-//   buttonDownload.position(30+windowOffset.x,100+50+windowOffset.y);
-// }
+
 function updateUiPos() {
   const s = windowOffset.w / page.width;
 
@@ -120,8 +119,9 @@ function updateUiPos() {
 function handleImage(file) {
 if (file.type === 'image') {
     console.log(file.name+" loading")
-    
+    imagesNeeded++
     loadImage(file.data, img => {
+      imagesLoaded++
       if(SpriteSheetCheckbox.checked()){
         let tempArray=splitImage(img,32,32)
         for(let i=0;i<tempArray.length;i++){
@@ -141,7 +141,27 @@ if (file.type === 'image') {
     });
   }
 }
+function numberToOrdinal(n){
+  const v=n%100
+  if(v>=11 && v<=13) return n+"th";
+  switch (n%10){
+    case 1: return n+"st";
+    case 2: return n+"nd";
+    case 3: return n+"rd";
+    default: return n+"th";
+  }
+  
+}
+let lerpLoad=0
 function exportImages(){
+  if(images.length==0){
+    window.alert("Heres smth to process :) (In the future make sure to Choose Files before downloading the output)")
+    for(let i=1;i<100;i++){
+      console.log(numberToOrdinal(i))
+      handleImage({name:"THE "+numberToOrdinal(i).toUpperCase()+" CHEESE",data:"slice-of-cheese.png",type:"image"})
+    }
+    return
+  }
   let outputStack=[]
   for(let i=0;i<images.length;i++){
     outputStack.push(...convertToList(images[i]))
@@ -149,7 +169,7 @@ function exportImages(){
   }
   saveStrings(outputStack, "glue3d-"+names[0],"txt")
 }
-
+let testSlider=15
 //main draw loop obviously
 function draw() {
   background(bgColor1);
@@ -192,9 +212,11 @@ function draw() {
   }
   page.push()
   page.imageMode(CENTER)
+  
   page.textAlign(CENTER)
   page.textSize(14)
   if(images[focusedImage]){
+    page.image(shadow,page.width*(3/4),210,shadow.width*0.25*lerpMod(focusTime2),shadow.height*0.25*lerpMod(focusTime2))
     page.text(names[focusedImage],page.width*(3/4),145-((lerpMod(focusTime2)*100)+1)/2)
     page.image(images[focusedImage],page.width*(3/4),155,(lerpMod(focusTime2)*100)+1,(lerpMod(focusTime2)*100)+1)
   }
@@ -219,11 +241,32 @@ function draw() {
   page.rectMode(CORNER)
   page.fill(255,255,255,100)
   page.stroke(255)
-  page.rect(45,245,page.width-90,32+10,10)
+  page.rect(45,245,550,42,10)
+  //loading
+  if(imagesNeeded>0){
+  lerpLoad=lerp(lerpLoad,imagesLoaded/imagesNeeded,0.9)
+  page.rect(45,267,550*(lerpLoad),20,10)
+  }
   page.noStroke()
   if(images.length==0){
     page.fill(30,100)
+    page.textAlign(LEFT)
     page.text("No files uploaded...",50,270)
+  }
+  else{
+    page.textAlign(RIGHT)
+    page.fill(255,200)
+    page.textSize(14)
+    page.text(images.length,40,270)
+    page.textSize(8)
+    page.textAlign(CENTER)
+    if(images.length==1){
+      page.text("file",35,280)
+    }
+    else{
+      page.text("files",35,280)
+    }
+    
   }
   for (let i = 0; i < images.length; i += 1) {
     // Calculate the y-coordinate.
@@ -234,13 +277,11 @@ function draw() {
     }
     
     // Draw the image.
-
-
-    page.image(images[i], x+50+xMod, 250, images[i].width, images[i].height);
     if(focusedImage==i){
-      page.fill(255,255,255,50)
-      page.noStroke()
-      page.rect(x+50+xMod, 250, images[i].width, images[i].height);
+    page.image(images[i], x+50+xMod, 250-20*abs((sin((millis()/1000)*(1/0.7)*PI))), 32, 32)
+    }
+    else{
+      page.image(images[i], x+50+xMod, 250, 32, 32)
     }
   }
   page.pop()

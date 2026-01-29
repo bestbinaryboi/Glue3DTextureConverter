@@ -44,7 +44,7 @@ let SpriteSheetCheckbox
 let ReduceMotionButton
 let gradientbg;
 let helpButton
-
+let reportButton
 function setup() {
   page=createGraphics(640,360);
   createCanvas(windowWidth,windowHeight)
@@ -57,7 +57,7 @@ function setup() {
   ReduceMotionButton = createCheckbox("Reduce Motion?");
   ReduceMotionButton.style("font-family: Verdana, sans-serif;")
   ReduceMotionButton.position(0,0)
-  let reportButton=createButton("Report issue/Suggest feature")
+  reportButton=createButton("Report issue/Suggest feature")
   reportButton.position(10,height-30)
   buttonDownload = createButton('Download Files');
   reportButton.mouseClicked(goToIssues);
@@ -69,13 +69,12 @@ function setup() {
   selector.mouseClicked(cycleFocusedImage)
   ReduceMotionButton.mouseClicked(setMotionReduce)
   updateUiPos()
+  setMotionReduce()
 
 }
 function setMotionReduce(){
   reduceMotion=ReduceMotionButton.checked()
-  if(reduceMotion){
-    gradientbg=loadImage("Gradient.png")
-  }
+  gradientbg=loadImage("Gradient.png")
 }
 function goToIssues(){
   window.open("https://github.com/bestbinaryboi/Glue3DTextureConverter/issues/new", "_blank");
@@ -84,7 +83,7 @@ function goToIssues(){
 
 function updateUiPos() {
   const s = windowOffset.w / page.width;
-
+  reportButton.position(10,height-30)
   // positions in page-space
   const baseX = 30;
   const otherX = 640-100;
@@ -176,17 +175,17 @@ function draw() {
   page.clear()
 
   //draw background animation
-  if(gradientbg&&reduceMotion){
+  if(gradientbg){
     image(gradientbg,0,0,width,height)
   }
   else{
-  push()
-  stroke(bgColor2)
-  strokeWeight(10)
-  for (let i=0;i<width/15;i++) {
-    line(((round(frameCount*bgSpeed))%30)+(i*30),0,0,(round(frameCount*bgSpeed)%30)+(i*30))
-  }
-  pop()
+  // push()
+  // stroke(bgColor2)
+  // strokeWeight(10)
+  // for (let i=0;i<width/15;i++) {
+  //   line(((round(frameCount*bgSpeed))%30)+(i*30),0,0,(round(frameCount*bgSpeed)%30)+(i*30))
+  // }
+  // pop()
   }
   page.push()
   page.noStroke()

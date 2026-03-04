@@ -26,6 +26,7 @@ let aeroGradient;
 let shadow;
 let showBranding=true
 let clickTesting=false
+let dragTesting=false
 function preload() {
   logo=loadImage("glue3dtextureconverterlogo.png")
 }
@@ -236,13 +237,31 @@ function exportImages(){
   }
   saveStrings(outputStack, "glue3d-"+names[0],"txt")
 }
+function mouseReleased(){
+  if(inDragMode){
+    inDragMode=false
+    if(getClickedItem()!=undefined){
+      swapTextures(focusedImage,getClickedItem())
+    }
+    const s = windowOffset.w / page.width;
+    if(isInBounds(windowOffset.x+(45+550)*s,windowOffset.y+290*s,32*s,32*s)){
+      images.splice(focusedImage,1)
+      names.splice(focusedImage,1)
+      focusedImage=undefined
+    }
+  }
+}
 let testSlider=15
 //main draw loop obviously
 function draw() {
   background(bgColor1);
   page.clear()
-  
-  
+  if(!mouseIsPressed){
+  dragModeTimer=millis()
+  }
+  if((millis()-dragModeTimer>2000)&&(focusedImage!=undefined)){
+    inDragMode=true
+  }
   //draw background animation
   if(gradientbg){
     image(gradientbg,0,0,width,height)
@@ -339,28 +358,38 @@ function draw() {
     }
     
   }
-  if(deleteMode){
+  const s = windowOffset.w / page.width;
+  if(deleteMode||(inDragMode&&isInBounds(windowOffset.x+(45+550)*s,windowOffset.y+290*s,32*s,32*s))){
     trashY=lerp(trashY,-10,0.9)
   }
   else{
     trashY=lerp(trashY,0,0.9)
   }
+  
   page.image(trashcanIcon,45+550,290+trashY,32,32)
   for (let i = 0; i < images.length; i += 1) {
     // Calculate the y-coordinate.
     let x = i * min(34,(page.width-90-32)/images.length);
     let xMod=0
+    
     if(!reduceMotion){
     xMod=min(lerpMod(1-((millis()-imageTime[i])/1000))*200,page.width-90)
     }
-    
     // Draw the image.
     if(deleteMode){
       page.tint(175+75*sin(millis()/1000+i),100,100)
     }
     if(focusedImage==i){
-    page.image(images[i], x+50+xMod, 250-20*abs((sin((millis()/1000)*(1/0.7)*PI))), 32, 32)
-      
+    if(!inDragMode){
+      if(millis()-dragModeTimer>500){
+      page.tint(((millis()-dragModeTimer-500)/1500)*100+150)
+      page.image(images[i], x+50+xMod,250, 32, 32)
+      }
+      else{
+      page.image(images[i], x+50+xMod, 250-20*abs((sin((millis()/1000)*(1/0.7)*PI))), 32, 32)
+      }
+      page.noTint()
+    }
     }
     else{
       page.image(images[i], x+50+xMod, 250, 32, 32)
@@ -373,7 +402,7 @@ function draw() {
   page.textSize(10)
   if(showBranding) page.text("Made by LamdaLady(NULLIS, unbentunicorn79)",5,page.height-15);
   page.textAlign(RIGHT)
-  page.text("v1.4",page.width-5,page.height-15)
+  page.text("v1.5",page.width-5,page.height-15)
   page.pop()
   //render the page onto the main canvas
   // if(!startDone){
@@ -429,6 +458,21 @@ function draw() {
     }
   }
   }
+  
+  
+  if(dragTesting){
+  text("timer: "+round(millis()-dragModeTimer)+"  dragMode?: "+inDragMode+" dropping to:"+getClickedItem(),0,30)
+  }
+  if(inDragMode){
+    push()
+    tint(255/1.5,200)
+    image(images[focusedImage],mouseX,mouseY)
+    pop()
+    cursor('grabbing')
+  }
+  else{
+    cursor(ARROW)
+  }
 }
 function isInBounds(boxx,boxy,boxw,boxh){
   boxx2=boxx+boxw
@@ -436,7 +480,7 @@ function isInBounds(boxx,boxy,boxw,boxh){
   return (boxx<mouseX)&&(mouseX<boxx2)&&(boxy<mouseY)&&(mouseY<boxy2)
 }
 function getClickedItem(){
-  let thisOutput=focusedImage
+  let thisOutput
   const s = windowOffset.w / page.width;
   for (let i = 0; i < images.length; i += 1) {
     // Calculate the y-coordinate.
@@ -456,8 +500,10 @@ function getClickedItem(){
     }
   }
   return thisOutput
-}
   
+}
+let dragModeTimer=0
+let inDragMode=false
 let deleteMode=false
 let trashY=0
 function mousePressed(){
@@ -466,16 +512,22 @@ function mousePressed(){
       startedDelay=millis()
     }
   }
+  const s = windowOffset.w / page.width;
+  if(isInBounds(windowOffset.x+(45+550)*s,windowOffset.y+290*s,32*s,32*s)){
+    deleteMode=!deleteMode
+  }
   if(deleteMode){
+    if(getClickedItem()==undefined){
+      return
+    }
     images.splice(getClickedItem(),1)
     names.splice(getClickedItem(),1)
   }
   else{
-    focusedImage=getClickedItem()
-  }
-  const s = windowOffset.w / page.width;
-  if(isInBounds(windowOffset.x+(45+550)*s,windowOffset.y+290*s,32*s,32*s)){
-    deleteMode=!deleteMode
+    if(getClickedItem()!=undefined){
+      focusedImage=getClickedItem()
+    }
+    
   }
   
 }
@@ -558,6 +610,10 @@ function splitImage(img, tileW, tileH) {
     }
   }
   return pieces;
+}
+function swapTextures(index1,index2){
+  [images[index1], images[index2]] = [images[index2], images[index1]];
+  [names[index1], names[index2]] = [names[index2], names[index1]];
 }
 function renderButton(inimg,sx,sy,sw,sh,inText=""){
   push()
